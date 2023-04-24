@@ -55,5 +55,13 @@ inv_cdf_gaussian( double y, double* params )
   return sigma*sqrt(2)*boost::math::erf_inv(arg_erf_inv) + mu;
 }
 
-
-
+// -----------------------------------------------------------------------------
+// Maxwell-Boltzmann CDF
+// -----------------------------------------------------------------------------
+double
+cdf_maxwell( double x, double* params )
+// -----------------------------------------------------------------------------
+{
+  double a = params[0];
+  return erf(x/(sqrt(2)*a)) - sqrt(2/M_PI)*(x/a)*exp(-pow(x,2)/(2*pow(a,2)));
+}
