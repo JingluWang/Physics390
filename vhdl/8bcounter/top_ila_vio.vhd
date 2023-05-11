@@ -24,8 +24,9 @@ end top;
 architecture Behavioral of top is
 
   signal sysclk : STD_LOGIC;
-  signal direction : STD_LOGIC;
+  signal direction, reset : STD_LOGIC;
   signal leds : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+  signal initial_value : STD_LOGIC_VECTOR (7 downto 0);
   signal count_div : STD_LOGIC_VECTOR(27 downto 0) := (others => '0');
 
 begin
@@ -36,11 +37,17 @@ begin
     IB => sysclk_n,
     O  => sysclk
     );
+
   
-  counter : entity work.counter8b
+  
+  counter : entity work.counter8b_rst
   port map(
     CLK       => sysclk,
+    -- ctrl
     DIR       => direction,
+    RST       => reset,
+    INITV     => initial_value,
+    -- outputs
     COUNT     => leds,
     COUNT_INT => count_div    
     );
@@ -54,14 +61,26 @@ begin
   gpio_led_1_ls <= leds(1);
   gpio_led_0_ls <= leds(0);  
 
-  direction <= gpio_dip_sw1;
+  -- take direction from vio instead ...
+  --direction <= gpio_dip_sw1;
   
   myila : entity work.ila_0
     port map(
       clk        => sysclk,
-      probe0(0)  => direction,
-      probe1     => leds,
-      probe2     => count_div
+      probe0(0)  => reset, --1b
+      probe1(0)  => direction, --1b      
+      probe2     => initial_value, --8b
+      probe3     => leds, --8b
+      probe4     => count_div --28b
+      );
+
+    myvio : entity work.vio_0 
+    port map(
+      clk            => sysclk,
+      probe_out0(0)  => reset,
+      probe_out1(0)  => direction,
+      probe_out2     => initial_value,      
+      probe_in0      => leds
       );
   
 
